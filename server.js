@@ -76,11 +76,10 @@ const init = (db) => {
                 inquirer
                     .prompt(addDepartmentQuestion)
                     .then((data) => {
-                        console.log(data)
-                        db.query(`INSERT INTO department (department_name) VALUES ?`, [data.department], (err, result) => {
+                        //let sql_query = "INSERT INTO department VALUES(?, ?)";
+                        //let params = [data.id, data.department];
+                        db.query("INSERT INTO department VALUES(?, ?)", [data.id, data.department], (err, result) => {
                             console.log(`Added ${data.department} to the employeelist_db.`)
-                            console.table(result);
-                            console.error(err);
                         })
                     })
             };
