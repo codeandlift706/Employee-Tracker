@@ -12,7 +12,7 @@ const db = mysql.createConnection(
     console.log('Connected to employeelist_db')
 );
 
-// TODO: Create an array of questions for user input
+// TODO: Create an array of questions for initial user input
 const questions = [
     {
         type: 'list',
@@ -30,7 +30,8 @@ const questions = [
     },
 ];
 
-// TODO: initialize app
+// TODO: initialize app with info from db
+//query takes in at least 2 arguments. Example: `DELETE FROM course_names WHERE id = ? AND first_name = ?`, [3, 'Rachel']
 const init = (db) => {
     inquirer
         .prompt(questions)
@@ -41,8 +42,6 @@ const init = (db) => {
                     console.log("View all Departments")
                     console.table(result);
                 });
-                //CURRENTLY ONLY SHOWING: department names, department ids
-                //NEEDS TO SHOW: department names, department ids
             }
 
             if (data.selections === 'View all Roles') {
@@ -63,7 +62,6 @@ const init = (db) => {
                 });
             }
 
-
             if (data.selections === 'Add a Department') {
                 console.log("Add a Department")
 
@@ -78,9 +76,11 @@ const init = (db) => {
                 inquirer
                     .prompt(addDepartmentQuestion)
                     .then((data) => {
-                        db.query(`INSERT INTO department (department_name) VALUES ?`[data.department], (err, result) => {
+                        console.log(data)
+                        db.query(`INSERT INTO department (department_name) VALUES ?`, [data.department], (err, result) => {
                             console.log(`Added ${data.department} to the employeelist_db.`)
-                            console.table(result)
+                            console.table(result);
+                            console.error(err);
                         })
                     })
             };

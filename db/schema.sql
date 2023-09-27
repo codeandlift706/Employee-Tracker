@@ -29,8 +29,5 @@ manager_id INT,
 FOREIGN KEY (employee_role_id)
 REFERENCES employee_role(id)
 ON DELETE SET NULL,
-FOREIGN KEY (manager_id)
-REFERENCES employee(id)
-ON DELETE SET NULL,
 PRIMARY KEY (id)
 );
