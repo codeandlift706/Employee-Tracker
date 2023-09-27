@@ -85,7 +85,6 @@ const init = (db) => {
                     })
             };
 
-
             if (data.selections === 'Add a Role') {
                 console.log("Add a Role")
 
@@ -137,7 +136,6 @@ const init = (db) => {
 
                 //     })
             };
-
 
             if (data.selections === 'Add an Employee') {
                 console.log("Add an Employee")

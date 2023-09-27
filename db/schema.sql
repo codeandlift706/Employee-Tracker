@@ -26,6 +26,8 @@ first_name VARCHAR(30) NOT NULL,
 last_name VARCHAR(30) NOT NULL,
 employee_role_id INT,
 manager_id INT,
+CONSTRAINT manager_constraint_name FOREIGN KEY (manager_id) REFERENCES employee(id)
+ON DELETE SET NULL,
 FOREIGN KEY (employee_role_id)
 REFERENCES employee_role(id)
 ON DELETE SET NULL,
