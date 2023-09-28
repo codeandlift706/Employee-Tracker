@@ -12,7 +12,7 @@ const db = mysql.createConnection(
     console.log('Connected to employeelist_db')
 );
 
-// TODO: Create an array of questions for initial user input
+// TODO: Create an array of questions for initial client selection for what they want to do
 const questions = [
     {
         type: 'list',
@@ -30,8 +30,52 @@ const questions = [
     },
 ];
 
+
+function addARole() {
+    //we have to retrieve all data from the department table first so we can work with it
+    db.query('SELECT * FROM department;', (err, result) => {
+        console.log(result)
+
+        const addRoleQuestion = [
+            {
+                type: 'input',
+                message: 'What is the name of the role?',
+                name: 'role',
+            },
+            {
+                type: 'input',
+                message: 'What is the salary of the role?',
+                name: 'roleSalary',
+            },
+            {
+                type: 'list',
+                message: 'Which department does the role belong to?',
+                name: 'roleDepartment',
+                choices: result.map((dp) => { //the result returns to us an array of objects. We are creating a new array and retitling the properties that are compatible with inquirer, for the list of depts to show for the client to select from
+                    return {
+                        value: dp.id, // column title: value
+                        name: dp.department_name //column title: name
+                    }
+                })
+            },
+        ];
+
+        inquirer
+            .prompt(addRoleQuestion)
+            .then((data) => {
+                db.query("INSERT INTO employee_role (title, salary, department_id) VALUES(?, ?, ?)", [data.role, data.roleSalary, data.roleDepartment], (err, result) => {
+                    console.log(`Added ${data.role} to the employeelist_db.`)
+                    init(); //run init again so that the user can continue with the original set of questions if they want to do something else
+                })
+            })
+
+    })
+}
+
+
+
 // TODO: initialize app with info from db
-const init = (db) => {
+const init = () => {
     inquirer
         .prompt(questions)
         .then((data) => {
@@ -44,20 +88,16 @@ const init = (db) => {
             }
 
             if (data.selections === 'View all Roles') {
-                db.query('SELECT * FROM employee_role;', (err, result) => {
+                db.query('SELECT title, salary, employee_role.id, department_name FROM department JOIN employee_role ON department.id = employee_role.department_id;', (err, result) => {
                     console.log("View all Roles")
                     console.table(result)
-                    //CURRENTLY ONLY SHOWING: job title, role id, department_id, and the salary
-                    //NEEDS TO SHOW: job title, role id, the department that role belongs to, and the salary
                 });
             }
 
             if (data.selections === 'View all Employees') {
-                db.query('SELECT * FROM employee;', (err, result) => {
+                db.query('SELECT employee.id, employee.first_name, employee.last_name, employee.manager_id, employee_role.title, department.department_name, employee_role.salary, manager.first_name, manager.last_name FROM employee left join employee_role on employee.employee_role_id = employee_role.id left join department on employee_role.department_id = department.id left join employee manager on employee.manager_id = manager.id;', (err, result) => {
                     console.log("View all Employees")
                     console.table(result)
-                    //CURRENTLY ONLY SHOWING: employee ids, first names, last names, manager_id
-                    //NEEDS TO SHOW: job titles, departments, salaries, and managers report to
                 });
             }
 
@@ -75,44 +115,14 @@ const init = (db) => {
                 inquirer
                     .prompt(addDepartmentQuestion)
                     .then((data) => {
-                        db.query("INSERT INTO department VALUES(?, ?)", [data.id, data.department], (err, result) => {
+                        db.query("INSERT INTO department VALUES(?)", [data.department], (err, result) => {
                             console.log(`Added ${data.department} to the employeelist_db.`)
                         })
                     })
             };
 
             if (data.selections === 'Add a Role') {
-                console.log("Add a Role")
-
-                const addRoleQuestion = [
-                    {
-                        type: 'input',
-                        message: 'What is the name of the role?',
-                        name: 'role',
-                    },
-                    {
-                        type: 'input',
-                        message: 'What is the salary of the role?',
-                        name: 'roleSalary',
-                    },
-                    {
-                        type: 'list',
-                        message: 'Which department does the role belong to?',
-                        name: 'roleDepartment',
-                        choices: () => {
-                            db.query('SELECT department_name FROM department;')
-                        }
-                         //HOW DO I POPULATE THE LIST OF ALL DEPTS?
-                    },
-                ];
-
-                inquirer
-                    .prompt(addRoleQuestion)
-                    .then((data) => {
-                        db.query("INSERT INTO employee_role VALUES(?, ?, ?)", [data.id, data.role, data.roleSalary], (err, result) => {
-                            console.log(`Added ${data.role} to the employeelist_db.`)
-                        })
-                    })
+                addARole();
             };
 
             if (data.selections === 'Add an Employee') {
@@ -186,4 +196,4 @@ const init = (db) => {
         })
 };
 
-init(db);
+init();
