@@ -31,7 +31,6 @@ const questions = [
 ];
 
 // TODO: initialize app with info from db
-//query takes in at least 2 arguments. Example: `DELETE FROM course_names WHERE id = ? AND first_name = ?`, [3, 'Rachel']
 const init = (db) => {
     inquirer
         .prompt(questions)
@@ -76,8 +75,6 @@ const init = (db) => {
                 inquirer
                     .prompt(addDepartmentQuestion)
                     .then((data) => {
-                        //let sql_query = "INSERT INTO department VALUES(?, ?)";
-                        //let params = [data.id, data.department];
                         db.query("INSERT INTO department VALUES(?, ?)", [data.id, data.department], (err, result) => {
                             console.log(`Added ${data.department} to the employeelist_db.`)
                         })
@@ -98,42 +95,24 @@ const init = (db) => {
                         message: 'What is the salary of the role?',
                         name: 'roleSalary',
                     },
-                    // {
-                    //     type: 'list',
-                    //     message: 'Which department does the role belong to?',
-                    //     name: 'roleDepartment'
-                    //     choices: [db.query('SELECT department_name FROM department;')]
-                    // },
+                    {
+                        type: 'list',
+                        message: 'Which department does the role belong to?',
+                        name: 'roleDepartment',
+                        choices: () => {
+                            db.query('SELECT department_name FROM department;')
+                        }
+                         //HOW DO I POPULATE THE LIST OF ALL DEPTS?
+                    },
                 ];
 
                 inquirer
                     .prompt(addRoleQuestion)
                     .then((data) => {
-                        db.query(`INSERT INTO employee_role (title) VALUES ?`, [data.role], (err, result) => {
+                        db.query("INSERT INTO employee_role VALUES(?, ?, ?)", [data.id, data.role, data.roleSalary], (err, result) => {
                             console.log(`Added ${data.role} to the employeelist_db.`)
-                            console.table(result)
                         })
                     })
-
-                    .prompt(addRoleQuestion)
-                    .then((data) => {
-                        db.query(`INSERT INTO employee_role (salary) VALUES ?`, [data.roleSalary], (err, result) => {
-                            console.log(`Added ${data.roleSalary} to the employeelist_db.`)
-                            console.table(result)
-
-                        })
-                    })
-
-                // .prompt(addRoleQuestion)
-                // .then((data) => {
-                //     if ([db.query('SELECT department_name FROM department;')] === )
-
-
-                //     db.query('INSERT INTO department (department_name) VALUES (?)', [data.department], (err, result) => {
-                //         console.log(`Added ${answers.department} to the employeelist_db.`)
-                //         console.table(result)
-
-                //     })
             };
 
             if (data.selections === 'Add an Employee') {
@@ -154,53 +133,24 @@ const init = (db) => {
                         type: 'list',
                         message: 'What is their role?',
                         name: 'employeeRole',
-                        choices: [db.query('SELECT title FROM employee_role;')]
+                        choices: [db.query('SELECT title FROM employee_role;')] //HOW DO I POPULATE THE LIST OF ALL ROLES?
                     },
                     {
                         type: 'list',
                         message: 'Who is their manager?',
                         name: 'employeeManager',
-                        choices: [db.query('SELECT title FROM employee_role;')]
+                        choices: [db.query('SELECT manager.first_name manager.last_name FROM employee;')] //HOW DO I POPULATE THE LIST OF ALL MANAGER NAMES?
                     },
                 ];
 
                 inquirer
                     .prompt(addEmployeeQuestion)
                     .then((data) => {
-                        db.query(`INSERT INTO employee (first_name) VALUES ?`, [data.employeeFirstName], (err, result) => {
-                            console.log(`Added ${data.employeeFirstName} to the employeelist_db.`)
-                            console.table(result)
-
+                        db.query("INSERT INTO employee VALUES(?, ?, ?, ?, ?)", [data.id, data.employeeFirstName, data.employeeLastName, data.employeeRole, data.employeeManager], (err, result) => {
+                            console.log(`Added ${data.employeeFirstName} ${data.employeeLastName} to the employeelist_db.`)
                         })
                     })
-
-                    .prompt(addEmployeeQuestion)
-                    .then((data) => {
-                        db.query(`INSERT INTO employee (last_name) VALUES ?`, [data.employeeLastName], (err, result) => {
-                            console.log(`Added ${data.employeeLastName} to the employeelist_db.`)
-                            console.table(result)
-
-                        })
-                    })
-
-                    .prompt(addEmployeeQuestion)
-                    .then((data) => {
-                        db.query(`INSERT INTO employee_role (title) VALUES ?`, [data.employeeRole], (err, result) => {
-                            console.log(`Added ${data.employeeRole} to the employeelist_db.`)
-                            console.table(result)
-
-                        })
-                    })
-
-                    .prompt(addEmployeeQuestion)
-                    .then((data) => {
-                        db.query(`INSERT INTO employee (title) VALUES ?`, [data.employeeManager], (err, result) => {
-                            console.log(`Added ${data.employeeManager} to the employeelist_db.`)
-                            console.table(result)
-
-                        })
-                    })
-            }
+            };
 
 
             if (data.selections === 'Update an Employee Role') {
@@ -211,36 +161,27 @@ const init = (db) => {
                         type: 'list',
                         message: 'Which employee do you want to update?',
                         name: 'updateEmployee',
-                        choices: [db.query('SELECT id FROM employee;')]
+                        choices: [db.query('SELECT id FROM employee;')] //HOW DO I POPULATE THE LIST OF ALL EMPLOYEE NAMES?
                     },
                     {
                         type: 'input',
                         message: 'Which role do you want to assign the selected employee?',
                         name: 'updateRole',
-                        choices: [db.query('SELECT title FROM employee_role;')]
+                        choices: [db.query('SELECT title FROM employee_role;')] //HOW DO I POPULATE THE LIST OF ALL ROLES?
                     },
                 ];
+
 
                 inquirer
                     .prompt(updateEmployeeQuestion)
                     .then((data) => {
-                        db.query(`INSERT INTO employee (first_name) VALUES (?)`, [data.employeeFirstName], (err, result) => {
-                            console.log(`Added ${data.employeeFirstName} to the employeelist_db.`)
-                            console.table(result)
-
+                        db.query("INSERT INTO employee VALUES(?, ?, ?)", [data.id, data.updateRole], (err, result) => {
+                            console.log(`Added ${data.employeeFirstName} ${data.employeeLastName} to the employeelist_db.`)
                         })
                     })
+            };
 
 
-                    .prompt(updateEmployeeQuestion)
-                    .then((data) => {
-                        db.query(`INSERT INTO employee_role (title) VALUES (?)`, [data.updateRole], (err, result) => {
-                            console.log(`Added ${data.updateRole} to the employeelist_db.`)
-                            console.table(result)
-
-                        })
-                    })
-            }
 
         })
 };
