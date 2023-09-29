@@ -1,1 +1,0 @@
-Select employee.first_name, employee.last_name, manager.first_name
