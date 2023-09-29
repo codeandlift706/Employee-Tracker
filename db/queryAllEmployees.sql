@@ -12,3 +12,8 @@ left join department
 on employee_role.department_id = department.id 
 left join employee manager 
 on employee.manager_id = manager.id;
+
+
+
+SELECT employee_role.title,
+FROM employee_role;

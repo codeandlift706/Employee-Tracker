@@ -111,7 +111,7 @@ function addARole() {
 }
 
 function addEmployee() {
-    db.query('SELECT title FROM employee_role;', (err, result) => {
+    db.query('SELECT title FROM employee_role; SELECT manager.first_name, manager.last_name FROM employee manager;', (err, result) => { //CAN I QUERY FROM BOTH TABLES?
         const addEmployeeQuestion = [
             {
                 type: 'input',
@@ -133,27 +133,69 @@ function addEmployee() {
                     }
                 })
             },
-                    {
-                        type: 'list',
-                        message: 'Who is their manager?',
-                        name: 'employeeManager',
-                        choices: result.map((mn) => {
-                            return {
-
-                            }
-                        })
-                    },
-    ];
-
+            {
+                type: 'list',
+                message: 'Who is their manager?',
+                name: 'employeeManager',
+                choices: result.map((mn) => {
+                    return {
+                        name: mn.first_name
+                    }
+                })
+            },
+        ];
 
         inquirer
             .prompt(addEmployeeQuestion)
             .then((data) => {
-                db.query("INSERT INTO employee (first_name, last_name, title, manager_id) VALUES (?, ?, ?, ?, ?)", [data.employeeFirstName, data.employeeLastName, data.employeeRole, data.employeeManager], (err, result) => {
+                db.query("INSERT INTO employee (first_name, last_name, manager_id) VALUES (?, ?, ?)", [data.employeeFirstName, data.employeeLastName, data.employeeManager], (err, result) => {
                     console.log(`Added ${data.employeeFirstName} ${data.employeeLastName} to the employeelist_db.`)
+                })
+
+                db.query("INSERT INTO department (title) VALUES (?)", [data.employeeRole], (err, result) => {
+                    console.log(`Added ${data.employeeRole} to the employeelist_db.`)
+                    init();
                 })
             })
 
+    })
+}
+
+
+
+function updateEmployee () {
+    db.query('SELECT first_name FROM employee; SELECT title FROM employee_role;', (err, result) => { //CAN I QUERY FROM BOTH TABLES?
+    const updateEmployeeQuestion = [
+        {
+            type: 'list',
+            message: 'Which employee do you want to update?',
+            name: 'updateEmployee',
+            choices: result.map((em) => {
+                return {
+                    name: em.first_name
+                }
+            })
+        },
+        {
+            type: 'input',
+            message: 'Which role do you want to assign the selected employee?',
+            name: 'updateRole',
+            choices: result.map((rl) => {
+                return {
+                    name: rl.title
+                }
+            })
+        },
+    ];
+
+    inquirer
+        .prompt(updateEmployeeQuestion)
+        .then((data) => {
+            db.query("INSERT INTO employee VALUES(?, ?, ?)", [data.id, data.updateRole], (err, result) => {
+                console.log(`Added ${data.employeeFirstName} ${data.employeeLastName} to the employeelist_db.`)
+                init();
+            })
+        })
     })
 }
 
@@ -184,37 +226,9 @@ const init = () => {
                 addEmployee();
             };
 
-
             if (data.selections === 'Update an Employee Role') {
-                console.log("Update an Employee Role")
-
-                const updateEmployeeQuestion = [
-                    {
-                        type: 'list',
-                        message: 'Which employee do you want to update?',
-                        name: 'updateEmployee',
-                        choices: [db.query('SELECT id FROM employee;')] //HOW DO I POPULATE THE LIST OF ALL EMPLOYEE NAMES?
-                    },
-                    {
-                        type: 'input',
-                        message: 'Which role do you want to assign the selected employee?',
-                        name: 'updateRole',
-                        choices: [db.query('SELECT title FROM employee_role;')] //HOW DO I POPULATE THE LIST OF ALL ROLES?
-                    },
-                ];
-
-
-                inquirer
-                    .prompt(updateEmployeeQuestion)
-                    .then((data) => {
-                        db.query("INSERT INTO employee VALUES(?, ?, ?)", [data.id, data.updateRole], (err, result) => {
-                            console.log(`Added ${data.employeeFirstName} ${data.employeeLastName} to the employeelist_db.`)
-                        })
-                    })
+                updateEmployee();
             };
-
-
-
         })
 };
 
