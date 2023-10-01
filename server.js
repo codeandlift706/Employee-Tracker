@@ -46,7 +46,7 @@ function viewAllRoles() {
     });
 }
 
-function viewAllEmployees() {
+function viewAllEmployees() { //NEED TO FIX: WHY DOESN'T MANAGER SHOW AND ALL EMPLOYEES SHOW?
     db.query('SELECT employee.id, employee.first_name, employee.last_name, employee.manager_id, employee_role.title, department.department_name, employee_role.salary, manager.first_name, manager.last_name FROM employee left join employee_role on employee.employee_role_id = employee_role.id left join department on employee_role.department_id = department.id left join employee manager on employee.manager_id = manager.id;', (err, result) => {
         console.table(result);
         init();
@@ -76,7 +76,6 @@ function addADepartment() {
 function addARole() {
     //we have to retrieve all data from the department table first so we can work with it
     db.query('SELECT * FROM department;', (err, result) => {
-        console.log(result)
 
         const addRoleQuestion = [
             {
@@ -114,8 +113,8 @@ function addARole() {
     })
 }
 
-function addEmployee() {
-    db.query('SELECT title FROM employee_role; SELECT manager_id, manager.first_name, manager.last_name FROM employee manager;', (err, result) => { //CAN I QUERY FROM BOTH TABLES?
+function addEmployee() { //NEED TO FIX, DOES NOT WORK
+    db.query('SELECT title FROM employee_role; SELECT manager_id, manager.first_name, manager.last_name FROM employee manager;', (err, result) => { 
         const addEmployeeQuestion = [
             {
                 type: 'input',
@@ -167,7 +166,7 @@ function addEmployee() {
 
 
 
-function updateEmployee () {
+function updateEmployee () { //NEED TO FIX, DOES NOT WORK
     db.query('SELECT first_name, last_name FROM employee; SELECT title FROM employee_role;', (err, result) => {
     const updateEmployeeQuestion = [
         {
