@@ -35,18 +35,21 @@ const questions = [
 function viewAllDepartments() {
     db.query('SELECT * FROM department;', (err, result) => {
         console.table(result);
+        init();
     });
 }
 
 function viewAllRoles() {
     db.query('SELECT title, salary, employee_role.id, department_name FROM department JOIN employee_role ON department.id = employee_role.department_id;', (err, result) => {
         console.table(result)
+        init();
     });
 }
 
 function viewAllEmployees() {
     db.query('SELECT employee.id, employee.first_name, employee.last_name, employee.manager_id, employee_role.title, department.department_name, employee_role.salary, manager.first_name, manager.last_name FROM employee left join employee_role on employee.employee_role_id = employee_role.id left join department on employee_role.department_id = department.id left join employee manager on employee.manager_id = manager.id;', (err, result) => {
-        console.table(result)
+        console.table(result);
+        init();
     });
 }
 
@@ -62,8 +65,9 @@ function addADepartment() {
     inquirer
         .prompt(addDepartmentQuestion)
         .then((data) => {
-            db.query("INSERT INTO department VALUES(?)", [data.department], (err, result) => {
-                console.log(`Added ${data.department} to the employeelist_db.`)
+            db.query("INSERT INTO department (department_name) VALUES(?)", [data.department], (err, result) => {
+                console.log(`Added ${data.department} to the employeelist_db.`);
+                init();
             })
         })
 }
@@ -102,8 +106,8 @@ function addARole() {
             .prompt(addRoleQuestion)
             .then((data) => {
                 db.query("INSERT INTO employee_role (title, salary, department_id) VALUES(?, ?, ?)", [data.role, data.roleSalary, data.roleDepartment], (err, result) => {
-                    console.log(`Added ${data.role} to the employeelist_db.`)
-                    init(); //run init again so that the user can continue with the original set of questions if they want to do something else
+                    console.log(`Added ${data.role} to the employeelist_db.`);
+                    init();
                 })
             })
 
@@ -111,7 +115,7 @@ function addARole() {
 }
 
 function addEmployee() {
-    db.query('SELECT title FROM employee_role; SELECT manager.first_name, manager.last_name FROM employee manager;', (err, result) => { //CAN I QUERY FROM BOTH TABLES?
+    db.query('SELECT title FROM employee_role; SELECT manager_id, manager.first_name, manager.last_name FROM employee manager;', (err, result) => { //CAN I QUERY FROM BOTH TABLES?
         const addEmployeeQuestion = [
             {
                 type: 'input',
@@ -137,9 +141,9 @@ function addEmployee() {
                 type: 'list',
                 message: 'Who is their manager?',
                 name: 'employeeManager',
-                choices: result.map((mn) => {
+                choices: result.map((managerName) => {
                     return {
-                        name: mn.first_name
+                        name: managerName.first_name + managerName.last_name
                     }
                 })
             },
@@ -152,8 +156,8 @@ function addEmployee() {
                     console.log(`Added ${data.employeeFirstName} ${data.employeeLastName} to the employeelist_db.`)
                 })
 
-                db.query("INSERT INTO department (title) VALUES (?)", [data.employeeRole], (err, result) => {
-                    console.log(`Added ${data.employeeRole} to the employeelist_db.`)
+                db.query("INSERT INTO employee_role (employee_role.id) VALUE(?)", [data.employeeRole], (err, result) => {
+                    console.log(`Added ${data.employeeRole} for ${data.employeeFirstName} ${data.employeeLastName} to the employeelist_db.`)
                     init();
                 })
             })
@@ -164,7 +168,7 @@ function addEmployee() {
 
 
 function updateEmployee () {
-    db.query('SELECT first_name FROM employee; SELECT title FROM employee_role;', (err, result) => { //CAN I QUERY FROM BOTH TABLES?
+    db.query('SELECT first_name, last_name FROM employee; SELECT title FROM employee_role;', (err, result) => {
     const updateEmployeeQuestion = [
         {
             type: 'list',
@@ -172,7 +176,7 @@ function updateEmployee () {
             name: 'updateEmployee',
             choices: result.map((em) => {
                 return {
-                    name: em.first_name
+                    name: em.first_name + em.last_name
                 }
             })
         },
@@ -191,8 +195,8 @@ function updateEmployee () {
     inquirer
         .prompt(updateEmployeeQuestion)
         .then((data) => {
-            db.query("INSERT INTO employee VALUES(?, ?, ?)", [data.id, data.updateRole], (err, result) => {
-                console.log(`Added ${data.employeeFirstName} ${data.employeeLastName} to the employeelist_db.`)
+            db.query("UPDATE employee SET (employee_role_id) VALUE(?), WHERE employee.employee_role_id = employee_role.id", [data.updateRole], (err, result) => {
+                console.log(`Updated role for the selected employee in the employeelist_db.`);
                 init();
             })
         })
@@ -215,6 +219,10 @@ const init = () => {
             };
 
             if (data.selections === 'View all Employees') {
+                viewAllEmployees();
+            };
+
+            if (data.selections === 'Add a Department') {
                 addADepartment();
             };
 
