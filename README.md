@@ -39,7 +39,7 @@ View a screenshot of the add employee function in VS Code:
 View a screenshot of the update employee function in VS Code:
 ![Screenshot of UaspdateEmployee](assets/serverFourScreenshot.png)
 View a screenshot of the init function and call in VS Code:
-![Screenshot of init function](serverFiveScreenshot.png)
+![Screenshot of init function](assets/serverFiveScreenshot.png)
 View a screenshot of the MySQL files (schema and seeds) in VS Code:
 ![Screenshot of schema file and seeds file](assets/schemaSeedsScreenshot.png)
 
