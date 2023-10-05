@@ -46,8 +46,8 @@ function viewAllRoles() {
     });
 }
 
-function viewAllEmployees() { //NEED TO FIX: WHY DOESN'T MANAGER SHOW AND ALL EMPLOYEES SHOW?
-    db.query('SELECT employee.id, employee.first_name, employee.last_name, employee.manager_id, employee_role.title, department.department_name, employee_role.salary, manager.first_name, manager.last_name FROM employee left join employee_role on employee.employee_role_id = employee_role.id left join department on employee_role.department_id = department.id left join employee manager on employee.manager_id = manager.id;', (err, result) => {
+function viewAllEmployees() { //employee.first_name and employee_last.name shows up if we provide aliases for manager.first_name and manager.last_name to differentiate the first.name and last.name
+    db.query('SELECT employee.id, employee.first_name, employee.last_name, employee.manager_id, employee_role.title, department.department_name, employee_role.salary, manager.first_name as manager_first_name, manager.last_name as manager_last_name FROM employee left join employee_role on employee.employee_role_id = employee_role.id left join department on employee_role.department_id = department.id left join employee manager on employee.manager_id = manager.id;', (err, result) => {
         console.table(result);
         init();
     });
@@ -113,94 +113,101 @@ function addARole() {
     })
 }
 
-function addEmployee() { //NEED TO FIX, DOES NOT WORK
-    db.query('SELECT title FROM employee_role; SELECT manager_id, manager.first_name, manager.last_name FROM employee manager;', (err, result) => { 
-        const addEmployeeQuestion = [
-            {
-                type: 'input',
-                message: 'What is the first name of the employee?',
-                name: 'employeeFirstName',
-            },
-            {
-                type: 'input',
-                message: 'What is the last name of the employee?',
-                name: 'employeeLastName',
-            },
-            {
-                type: 'list',
-                message: 'What is their role?',
-                name: 'employeeRole',
-                choices: result.map((er) => {
-                    return {
-                        name: er.title
-                    }
-                })
-            },
-            {
-                type: 'list',
-                message: 'Who is their manager?',
-                name: 'employeeManager',
-                choices: result.map((managerName) => {
-                    return {
-                        name: managerName.first_name + managerName.last_name
-                    }
-                })
-            },
-        ];
+function addEmployee() { //separate queries for each table you pull data from
+    db.query('SELECT title, id FROM employee_role;', (err, role) => { //we need the role title for the user to select from, but we are updating their employeeroleid
+        db.query('SELECT id, first_name, last_name FROM employee;', (err, manager) => { //we need the employee name from user input, but we are updating their employeeid
+            console.log(role, manager)
 
-        inquirer
-            .prompt(addEmployeeQuestion)
-            .then((data) => {
-                db.query("INSERT INTO employee (first_name, last_name, manager_id) VALUES (?, ?, ?)", [data.employeeFirstName, data.employeeLastName, data.employeeManager], (err, result) => {
-                    console.log(`Added ${data.employeeFirstName} ${data.employeeLastName} to the employeelist_db.`)
+            const addEmployeeQuestion = [
+                {
+                    type: 'input',
+                    message: 'What is the first name of the employee?',
+                    name: 'employeeFirstName',
+                },
+                {
+                    type: 'input',
+                    message: 'What is the last name of the employee?',
+                    name: 'employeeLastName',
+                },
+                {
+                    type: 'list',
+                    message: 'What is their role?',
+                    name: 'employeeRole',
+                    choices: role.map((role) => {
+                        return {
+                            name: role.title,
+                            value: role.id
+                        }
+                    })
+                },
+                {
+                    type: 'list',
+                    message: 'Who is their manager?',
+                    name: 'employeeManager',
+                    choices: manager.map((manager) => {
+                        return {
+                            name: manager.first_name + " " + manager.last_name,
+                            value: manager.id
+                        }
+                    })
+                },
+            ];
+            inquirer
+                .prompt(addEmployeeQuestion)
+                .then((data) => {
+                    db.query("INSERT INTO employee (first_name, last_name, manager_id, employee_role_id) VALUES (?, ?, ?, ?)", [data.employeeFirstName, data.employeeLastName, data.employeeManager, data.employeeRole], (err, result) => {
+                        console.log(`Added ${data.employeeFirstName} ${data.employeeLastName} to the employeelist_db.`)
+                        init();
+                    })
                 })
-
-                db.query("INSERT INTO employee_role (employee_role.id) VALUE(?)", [data.employeeRole], (err, result) => {
-                    console.log(`Added ${data.employeeRole} for ${data.employeeFirstName} ${data.employeeLastName} to the employeelist_db.`)
-                    init();
-                })
-            })
+        })
 
     })
 }
 
+function updateEmployee() { //separate queries for each table you pull data from
+    db.query('SELECT first_name, last_name, id FROM employee;', (err, employeeNameData) => { //we need the employee names for the user to select from, but we are updating their employeeid
+        db.query('SELECT title, id FROM employee_role;', (err, employeeRoleData) => { //we need the titles for the user to select from, but we are updating their employeeroleid
 
+            const updateEmployeeQuestion = [
+                {
+                    type: 'list',
+                    message: 'Which employee do you want to update?',
+                    name: 'updateEmployee',
+                    choices: employeeNameData.map((em) => {
+                        return {
+                            name: em.first_name + " " + em.last_name,
+                            value: em.id
+                        }
+                    })
+                },
+                {
+                    type: 'list',
+                    message: 'Which role do you want to assign the selected employee?',
+                    name: 'updateRole',
+                    choices: employeeRoleData.map((rl) => {
+                        return {
+                            name: rl.title,
+                            value: rl.id
+                        }
+                    })
+                },
+            ];
 
-function updateEmployee () { //NEED TO FIX, DOES NOT WORK
-    db.query('SELECT first_name, last_name FROM employee; SELECT title FROM employee_role;', (err, result) => {
-    const updateEmployeeQuestion = [
-        {
-            type: 'list',
-            message: 'Which employee do you want to update?',
-            name: 'updateEmployee',
-            choices: result.map((em) => {
-                return {
-                    name: em.first_name + em.last_name
-                }
-            })
-        },
-        {
-            type: 'input',
-            message: 'Which role do you want to assign the selected employee?',
-            name: 'updateRole',
-            choices: result.map((rl) => {
-                return {
-                    name: rl.title
-                }
-            })
-        },
-    ];
-
-    inquirer
-        .prompt(updateEmployeeQuestion)
-        .then((data) => {
-            db.query("UPDATE employee SET (employee_role_id) VALUE(?), WHERE employee.employee_role_id = employee_role.id", [data.updateRole], (err, result) => {
-                console.log(`Updated role for the selected employee in the employeelist_db.`);
-                init();
-            })
+            inquirer
+                .prompt(updateEmployeeQuestion)
+                .then((data) => {
+                    db.query("UPDATE employee SET employee_role_id = ? WHERE id = ?", [data.updateRole, data.updateEmployee], (err, result) => { //update employee table = update the employeeroleid for the selected role at the employeeid we give
+                        console.log(`Updated role for the selected employee in the employeelist_db.`);
+                        init();
+                    })
+                })
         })
     })
 }
+
+
+
 
 
 // This is to iitialize app with "node server" in the terminal, will then have to call this function
