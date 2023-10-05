@@ -116,7 +116,6 @@ function addARole() {
 function addEmployee() { //separate queries for each table you pull data from
     db.query('SELECT title, id FROM employee_role;', (err, role) => { //we need the role title for the user to select from, but we are updating their employeeroleid
         db.query('SELECT id, first_name, last_name FROM employee;', (err, manager) => { //we need the employee name from user input, but we are updating their employeeid
-            console.log(role, manager)
 
             const addEmployeeQuestion = [
                 {
